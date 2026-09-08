@@ -26,14 +26,17 @@ export default function Home() {
     let height = 0;
     let dpr = 1;
     let raf = 0;
+    let heroRect = hero.getBoundingClientRect();
+    let pointerDirty = false;
     const mouse = { x: -999, y: -999, tx: -999, ty: -999 };
     const ripples: { x: number; y: number; born: number }[] = [];
     let particles: { x: number; y: number; vx: number; vy: number; r: number; a: number }[] = [];
 
+    const syncHeroRect = () => { heroRect = hero.getBoundingClientRect(); };
     const resize = () => {
-      const rect = hero.getBoundingClientRect();
-      width = rect.width;
-      height = rect.height;
+      syncHeroRect();
+      width = heroRect.width;
+      height = heroRect.height;
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = width * dpr;
       canvas.height = height * dpr;
@@ -52,13 +55,9 @@ export default function Home() {
     };
 
     const move = (event: PointerEvent) => {
-      const rect = hero.getBoundingClientRect();
-      mouse.tx = event.clientX - rect.left;
-      mouse.ty = event.clientY - rect.top;
-      hero.style.setProperty("--mx", `${mouse.tx}px`);
-      hero.style.setProperty("--my", `${mouse.ty}px`);
-      hero.style.setProperty("--px", `${(mouse.tx / width - 0.5).toFixed(3)}`);
-      hero.style.setProperty("--py", `${(mouse.ty / height - 0.5).toFixed(3)}`);
+      mouse.tx = event.clientX - heroRect.left;
+      mouse.ty = event.clientY - heroRect.top;
+      pointerDirty = true;
     };
 
     const click = (event: PointerEvent) => {
@@ -68,6 +67,13 @@ export default function Home() {
     };
 
     const draw = (now: number) => {
+      if (pointerDirty) {
+        pointerDirty = false;
+        hero.style.setProperty("--mx", `${mouse.tx}px`);
+        hero.style.setProperty("--my", `${mouse.ty}px`);
+        hero.style.setProperty("--px", `${(mouse.tx / width - 0.5).toFixed(3)}`);
+        hero.style.setProperty("--py", `${(mouse.ty / height - 0.5).toFixed(3)}`);
+      }
       mouse.x += (mouse.tx - mouse.x) * 0.07;
       mouse.y += (mouse.ty - mouse.y) * 0.07;
       ctx.clearRect(0, 0, width, height);
@@ -120,12 +126,14 @@ export default function Home() {
 
     resize();
     window.addEventListener("resize", resize);
+    window.addEventListener("scroll", syncHeroRect, { passive: true });
     hero.addEventListener("pointermove", move);
     hero.addEventListener("pointerdown", click);
     raf = requestAnimationFrame(draw);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
+      window.removeEventListener("scroll", syncHeroRect);
       hero.removeEventListener("pointermove", move);
       hero.removeEventListener("pointerdown", click);
     };
@@ -134,13 +142,92 @@ export default function Home() {
   useEffect(() => {
     const dot = document.querySelector<HTMLElement>(".cursor-dot");
     const ring = document.querySelector<HTMLElement>(".cursor-ring");
-    if (!dot || !ring || matchMedia("(pointer: coarse)").matches) return;
-    let x = -100, y = -100, rx = -100, ry = -100, raf = 0;
-    const move = (event: MouseEvent) => { x = event.clientX; y = event.clientY; dot.style.transform = `translate3d(${x}px,${y}px,0)`; };
-    const tick = () => { rx += (x-rx)*.16; ry += (y-ry)*.16; ring.style.transform = `translate3d(${rx}px,${ry}px,0)`; raf = requestAnimationFrame(tick); };
-    const over = (event: MouseEvent) => ring.classList.toggle("is-active", !!(event.target as Element).closest("a,button,.tech-card"));
-    window.addEventListener("mousemove", move); window.addEventListener("mouseover", over); raf = requestAnimationFrame(tick);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("mousemove", move); window.removeEventListener("mouseover", over); };
+    if (!dot || !ring) return;
+
+    const finePointer = matchMedia("(pointer: fine)");
+    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    const cursorNodes = [dot, ring];
+    let x = -100, y = -100, rx = -100, ry = -100, raf = 0, lastFrame = 0;
+    let visible = false, active = false, initialized = false;
+
+    const isEnabled = () => finePointer.matches && !reducedMotion.matches && window.innerWidth > 1024;
+    const setVisible = (nextVisible: boolean) => {
+      if (visible === nextVisible) return;
+      visible = nextVisible;
+      cursorNodes.forEach((node) => node.classList.toggle("is-visible", visible));
+    };
+    const setActive = (nextActive: boolean) => {
+      if (active === nextActive) return;
+      active = nextActive;
+      cursorNodes.forEach((node) => node.classList.toggle("is-active", active));
+    };
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(render);
+    };
+    function render(now: number) {
+      raf = 0;
+      if (!initialized) return;
+      const delta = lastFrame ? Math.min(now - lastFrame, 34) : 16;
+      lastFrame = now;
+      const follow = 1 - Math.exp(-delta / 18);
+      rx += (x - rx) * follow;
+      ry += (y - ry) * follow;
+      dot.style.transform = `translate3d(${x}px,${y}px,0)`;
+      ring.style.transform = `translate3d(${rx}px,${ry}px,0)`;
+      if (Math.abs(x - rx) > .12 || Math.abs(y - ry) > .12) schedule();
+    }
+    const hide = () => {
+      cancelAnimationFrame(raf);
+      raf = 0;
+      initialized = false;
+      lastFrame = 0;
+      setVisible(false);
+      setActive(false);
+    };
+    const syncCursorMode = () => {
+      const enabled = isEnabled();
+      document.documentElement.classList.toggle("has-custom-cursor", enabled);
+      if (!enabled) hide();
+    };
+    const move = (event: PointerEvent) => {
+      if (!isEnabled()) return;
+      x = event.clientX;
+      y = event.clientY;
+      if (!initialized) {
+        initialized = true;
+        rx = x;
+        ry = y;
+      }
+      setVisible(true);
+      schedule();
+    };
+    const over = (event: PointerEvent) => {
+      const target = event.target instanceof Element ? event.target : null;
+      setActive(!!target?.closest("a,button,.tech-card,[role='button']"));
+    };
+    const leave = (event: PointerEvent) => {
+      if (!event.relatedTarget) hide();
+    };
+
+    syncCursorMode();
+    window.addEventListener("pointermove", move, { passive: true });
+    window.addEventListener("pointerover", over, { passive: true });
+    window.addEventListener("pointerout", leave, { passive: true });
+    window.addEventListener("blur", hide);
+    window.addEventListener("resize", syncCursorMode);
+    finePointer.addEventListener("change", syncCursorMode);
+    reducedMotion.addEventListener("change", syncCursorMode);
+    return () => {
+      cancelAnimationFrame(raf);
+      document.documentElement.classList.remove("has-custom-cursor");
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerover", over);
+      window.removeEventListener("pointerout", leave);
+      window.removeEventListener("blur", hide);
+      window.removeEventListener("resize", syncCursorMode);
+      finePointer.removeEventListener("change", syncCursorMode);
+      reducedMotion.removeEventListener("change", syncCursorMode);
+    };
   }, []);
 
   return (

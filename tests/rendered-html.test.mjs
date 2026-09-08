@@ -73,7 +73,7 @@ test("renders a decorative pointer trail with bounded reusable icon nodes", asyn
   const trail = html.match(/<div[^>]*class="pointer-trail"[\s\S]*?<\/div>/)?.[0];
   assert.ok(trail);
   assert.match(trail, /aria-hidden="true"/);
-  assert.equal((trail.match(/class="pointer-trail-icon"/g) ?? []).length, 12);
+  assert.equal((trail.match(/class="pointer-trail-icon"/g) ?? []).length, 8);
 
   const source = await readFile(new URL("../app/pointer-trail.ts", import.meta.url), "utf8");
   const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } }).outputText;
@@ -85,6 +85,10 @@ test("renders a decorative pointer trail with bounded reusable icon nodes", asyn
 
   const css = await readFile(new URL("../app/pointer-trail.css", import.meta.url), "utf8");
   for (const copy of ["pointer: coarse", "prefers-reduced-motion", "@media print", "pointer-events: none"]) assert.ok(css.includes(copy), copy);
+  assert.doesNotMatch(css, /backdrop-filter|will-change:\s*[^;}]*filter/);
+  const component = await readFile(new URL("../app/PointerTrail.tsx", import.meta.url), "utf8");
+  assert.match(component, /requestAnimationFrame\(flushMove\)/);
+  assert.doesNotMatch(component, /filter:\s*["`]blur|getAnimations\(\)/);
 });
 
 test("keeps complete hero copy accessible before motion starts", async () => {
@@ -249,6 +253,20 @@ test("small-screen hero hides only the desktop stack and releases its reserved h
   assert.ok(flowCss.includes("prefers-reduced-motion") && flowCss.includes("var(--work-play, paused)"));
   const html = await (await render()).text();
   assert.equal((html.match(/role="listitem"/g) ?? []).length, 5); // Desktop markup preserved.
+});
+
+test("desktop custom cursor has themed orbit, interaction state, and safe fallbacks", async () => {
+  const pageSource = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const pageCss = await readFile(new URL("../app/portfolio.css", import.meta.url), "utf8");
+  assert.match(pageSource, /document\.documentElement\.classList\.toggle\("has-custom-cursor", enabled\)/);
+  assert.match(pageSource, /prefers-reduced-motion: reduce/);
+  assert.match(pageSource, /cursorNodes\.forEach\(\(node\) => node\.classList\.toggle\("is-active", active\)\)/);
+  assert.match(pageSource, /if \(!raf\) raf = requestAnimationFrame\(render\)/);
+  assert.doesNotMatch(pageSource, /raf = requestAnimationFrame\(tick\)/);
+  assert.match(pageCss, /html\.has-custom-cursor \* \{ cursor:none!important; \}/);
+  assert.match(pageCss, /conic-gradient\(from 40deg/);
+  assert.match(pageCss, /@keyframes cursor-orbit/);
+  assert.match(pageCss, /@media \(prefers-reduced-motion:reduce\).*\.cursor-dot,\.cursor-ring\{display:none\}/s);
 });
 
 test("retains Web3 projects and skills in source while excluding them from the page", async () => {

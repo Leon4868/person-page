@@ -1,7 +1,7 @@
 export type TrailPoint = { x: number; y: number };
 
-export const TRAIL_SPACING = 56;
-export const MAX_TRAIL_SAMPLES = 3;
+export const TRAIL_SPACING = 72;
+export const MAX_TRAIL_SAMPLES = 2;
 
 export function trailSamples(
   from: TrailPoint,

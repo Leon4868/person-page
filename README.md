@@ -9,7 +9,7 @@ app/
 ├── layout.tsx        # 元数据与全局布局
 ├── page.tsx          # 页面内容、Canvas 动画与交互
 ├── HeroCopy.tsx      # 左侧文字解码入场、数字递增与鼠标高光
-├── PointerTrail.tsx  # 桌面端鼠标技术图标尾迹
+├── PointerTrail.tsx  # 桌面端鼠标技术图标尾迹（搭配紫蓝能量光标）
 ├── pointer-trail.ts  # 尾迹采样与间距控制
 ├── pointer-trail.css # 紫蓝霓虹图标、淡出与动效降级
 ├── CareerTimeline.tsx # 年份导航、滚动联动与五段真实职业经历
