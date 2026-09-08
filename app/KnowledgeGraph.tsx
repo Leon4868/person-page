@@ -123,7 +123,7 @@ export default function KnowledgeGraph() {
 
   return (
     <section className="section skills-section knowledge-section" id="skills" ref={rootRef} aria-labelledby="knowledge-title">
-      <div className="section-label"><span>03</span> CAPABILITY MAP / 核心能力图谱</div>
+      <div className="section-label"><span>02</span> CAPABILITY MAP / 核心能力图谱</div>
       <div className="knowledge-heading">
         <h2 id="knowledge-title">岗位 <span>×</span> 技能知识图谱</h2>
         <p id="knowledge-help">AI 研发工程 × Agent × 全栈 × 云原生<br />点选图标，查看技能与项目实践。</p>

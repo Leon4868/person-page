@@ -47,10 +47,11 @@ test("server-renders the completed portfolio homepage", async () => {
     assert.match(html, new RegExp(copy));
   }
 
-  for (const id of ["home", "about", "work", "skills", "experience", "contact"]) {
+  for (const id of ["home", "work", "skills", "experience", "contact"]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
 
+  assert.doesNotMatch(html, /id=["']about["']|href=["']#about["']|ABOUT \/ 基础信息/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/i);
 });
 
@@ -270,31 +271,10 @@ test("knowledge graph is a complete tree with stable perspective endpoints", () 
   }
 });
 
-test("identity card exposes three role views and keeps essential contact details directly accessible", async () => {
-  const html = await (await render()).text();
-  const about = html.match(/<section[^>]*id="about"[\s\S]*?<\/section>/)?.[0];
-  assert.ok(about);
-  assert.match(about, /aria-labelledby="identity-heading"/);
-  assert.equal((about.match(/aria-pressed="true"/g) ?? []).length, 1);
-  assert.equal((about.match(/aria-pressed="false"/g) ?? []).length, 2);
-  for (const id of ["agent", "fullstack", "workflow"]) {
-    assert.ok(about.includes(`aria-controls="identity-role-${id}"`));
-    assert.ok(about.includes(`id="identity-role-${id}"`));
-  }
-  assert.match(about, /id="identity-role-agent"[^>]*><h3>AI Agent 工程师/);
-  assert.match(about, /id="identity-role-fullstack"[^>]*hidden/);
-  assert.match(about, /id="identity-role-workflow"[^>]*hidden/);
-  for (const copy of ["徐小龙", "在职，寻找新机会", "广州 / 深圳 · 均可", "广州 / 深圳 · CHINA", "10+ 年", "13 个 Skill", "Subagent 并行编排", "自研 ith5", "mailto:ith5cn@163.com", "tel:15975492315"]) assert.ok(about.includes(copy), copy);
-  assert.doesNotMatch(about, /广州 · 可远程协作/);
-  assert.match(about, /aria-live="polite" aria-atomic="true"/);
-  assert.doesNotMatch(about, /<details\b|Web3|钱包连接|链上交互/);
-});
-
 test("career timeline preserves all employment facts and provides chronological native navigation", async () => {
   const source = await readFile(new URL("../app/portfolio-content.ts", import.meta.url), "utf8");
   const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } }).outputText;
-  const { experience, careerChapters, identityRoles } = await import(`data:text/javascript;base64,${Buffer.from(js).toString("base64")}`);
-  assert.equal(identityRoles.length, 3);
+  const { experience, careerChapters } = await import(`data:text/javascript;base64,${Buffer.from(js).toString("base64")}`);
   assert.deepEqual(careerChapters.map(entry => entry.year), ["2016", "2019", "2022", "2025", "2026"]);
   assert.deepEqual(careerChapters.map(({ period, company, role, detail }) => [period, company, role, detail]), [...experience].reverse());
   const html = await (await render()).text();
@@ -315,17 +295,7 @@ test("career timeline preserves all employment facts and provides chronological 
 
 const profileMotionSource = await readFile(new URL("../app/profile-motion.ts", import.meta.url), "utf8");
 const profileMotionJs = ts.transpileModule(profileMotionSource, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } }).outputText;
-const { identityPose, careerFrame } = await import(`data:text/javascript;base64,${Buffer.from(profileMotionJs).toString("base64")}`);
-
-test("identity pointer tilt is bounded and neutral for unavailable geometry", () => {
-  assert.deepEqual(identityPose(250, 300, 500, 600), { rx: 0, ry: 0, lightX: 50, lightY: 50 });
-  assert.deepEqual(identityPose(10, 10, 0, 0), { rx: 0, ry: 0, lightX: 50, lightY: 35 });
-  for (const x of [-1000, 0, 100, 500, 5000]) for (const y of [-1000, 0, 200, 600, 5000]) {
-    const pose = identityPose(x, y, 500, 600);
-    assert.ok(pose.rx >= -4 && pose.rx <= 4 && pose.ry >= -5 && pose.ry <= 5);
-    assert.ok(pose.lightX >= 0 && pose.lightX <= 100 && pose.lightY >= 0 && pose.lightY <= 100);
-  }
-});
+const { careerFrame } = await import(`data:text/javascript;base64,${Buffer.from(profileMotionJs).toString("base64")}`);
 
 test("career scroll state advances monotonically without hiding or excessively tilting past entries", () => {
   const centers = [200, 650, 1100, 1550, 2000];
@@ -348,16 +318,12 @@ test("career scroll state advances monotonically without hiding or excessively t
   assert.equal(careerFrame([200], 400, 0).progress, 0);
 });
 
-test("identity and career enhancements retain reduced-motion, mobile, keyboard and print fallbacks", async () => {
-  const identityCss = await readFile(new URL("../app/identity-card.css", import.meta.url), "utf8");
+test("career enhancement retains reduced-motion, mobile, keyboard and print fallbacks", async () => {
   const careerCss = await readFile(new URL("../app/career-timeline.css", import.meta.url), "utf8");
-  for (const css of [identityCss, careerCss]) for (const copy of ["prefers-reduced-motion", "max-width: 900px", "@media print", "focus-visible"]) assert.ok(css.includes(copy), copy);
-  assert.match(identityCss, /\.identity-role-summary > div\[hidden\] \{ display: block; \}/);
+  for (const copy of ["prefers-reduced-motion", "max-width: 900px", "@media print", "focus-visible"]) assert.ok(careerCss.includes(copy), copy);
   assert.ok(careerCss.includes("opacity: 1; will-change: auto;"));
   const pageCss = await readFile(new URL("../app/portfolio.css", import.meta.url), "utf8");
   assert.ok(pageCss.includes("@supports (overflow: clip) { main { overflow: clip; } }"));
-  for (const component of ["IdentityCard", "CareerTimeline"]) {
-    const code = await readFile(new URL(`../app/${component}.tsx`, import.meta.url), "utf8");
-    assert.ok(code.includes("visibilitychange") && code.includes("document.hidden") && code.includes("disconnect()"));
-  }
+  const code = await readFile(new URL("../app/CareerTimeline.tsx", import.meta.url), "utf8");
+  assert.ok(code.includes("visibilitychange") && code.includes("document.hidden") && code.includes("disconnect()"));
 });

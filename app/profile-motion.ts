@@ -1,11 +1,5 @@
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
-export function identityPose(x: number, y: number, width: number, height: number) {
-  if (width <= 0 || height <= 0) return { rx: 0, ry: 0, lightX: 50, lightY: 35 };
-  const px = clamp(x / width), py = clamp(y / height);
-  return { rx: (0.5 - py) * 8, ry: (px - 0.5) * 10, lightX: px * 100, lightY: py * 100 };
-}
-
 export function careerFrame(centers: number[], anchor: number, range: number) {
   if (!centers.length) return { active: 0, progress: 0, cards: [] };
   let active = 0;

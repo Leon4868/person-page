@@ -53,7 +53,7 @@ export default function CareerTimeline() {
   }, []);
 
   return <section className="section career-section" id="experience" aria-labelledby="career-heading" ref={rootRef} style={{ "--career-tone": tones[active] } as CSSProperties}>
-    <div className="section-label"><span>04</span> EXPERIENCE / 职业履历</div>
+    <div className="section-label"><span>03</span> EXPERIENCE / 职业履历</div>
     <div className="career-layout">
       <div className="career-console"><p className="kicker">EXPERIENCE / EVOLUTION</p><h2 id="career-heading">从界面到智能体，<br />十年持续<span>进阶。</span></h2><p className="career-intro">前端工程 → 全栈系统 → AI Agent / 研发工程</p>
         <div className="career-year-display" aria-hidden="true"><span>CHAPTER {String(active + 1).padStart(2, "0")} / 05</span><strong key={chapter.year}>{chapter.year}<i /></strong><p>{chapter.stage}</p></div>

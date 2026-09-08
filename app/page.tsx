@@ -7,7 +7,6 @@ import TechStack from "./TechStack";
 import HeroCopy from "./HeroCopy";
 import SelectedWork from "./SelectedWork";
 import KnowledgeGraph from "./KnowledgeGraph";
-import IdentityCard from "./IdentityCard";
 import CareerTimeline from "./CareerTimeline";
 import { visibleProjects } from "./portfolio-content";
 
@@ -156,7 +155,7 @@ export default function Home() {
             <span><strong>徐小龙</strong><small>BUILD · SOLVE · CREATE</small></span>
           </a>
           <nav aria-label="主要导航">
-            <a className="active" href="#home">首页</a><a href="#about">关于</a><a href="#work">作品</a><a href="#skills">能力</a><a href="#experience">履历</a><a href="#contact">联系</a>
+            <a className="active" href="#home">首页</a><a href="#work">作品</a><a href="#skills">能力</a><a href="#experience">履历</a><a href="#contact">联系</a>
           </nav>
           <button className="download" type="button" onClick={() => window.print()} aria-label="将当前个人介绍打印或保存为 PDF">下载简历 <span>↓</span></button>
         </header>
@@ -168,10 +167,8 @@ export default function Home() {
         <div className="side-note"><span>IDEAS</span><span>CODE</span><span>PEOPLE</span><span>IMPACT</span><i /></div>
         <div className="rock-note" aria-hidden="true"><span>IDEAS</span><span>INTO</span><span>REALITY</span><i /></div>
         <div className="bottom-note" aria-hidden="true"><span>GOOD</span><span>SOFTWARE</span><span>A BRIGHTER</span><span>TOMORROW</span><i /></div>
-        <a className="scroll-cue" href="#about"><span /><small>SCROLL TO EXPLORE</small></a>
+        <a className="scroll-cue" href="#work"><span /><small>SCROLL TO EXPLORE</small></a>
       </section>
-
-      <IdentityCard />
 
       <SelectedWork projects={visibleProjects} />
 

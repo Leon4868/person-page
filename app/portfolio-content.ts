@@ -67,12 +67,6 @@ export const experience = [
   ["2016.09 — 2019.03", "互联网 / 游戏行业", "Web 前端工程师", "从 Web、H5 与游戏运营后台出发，持续积累组件化、性能优化与跨团队交付经验。"],
 ];
 
-export const identityRoles = [
-  { id: "agent", label: "AI Agent", title: "AI Agent 工程师", icon: "bot", tone: "114, 209, 239", summary: "把模型能力接入真实业务，构建可编排、可追踪、可评测的 Agent 系统。", skills: ["Agent Runtime", "RAG / Tool Calling", "模型微调与评测"] },
-  { id: "fullstack", label: "全栈开发", title: "AI 全栈开发工程师", icon: "code", tone: "141, 164, 255", summary: "连接前端交互、后端服务与云原生交付，将复杂业务落成完整产品。", skills: ["React / Next.js", "Go / Gin", "AWS / CI/CD"] },
-  { id: "workflow", label: "AI Workflow", title: "AI 研发工作流构建者", icon: "workflow", tone: "192, 148, 250", summary: "自研 ith5 多 Agent 研发工作流，沉淀工程规范、上下文管理、代码审查与 QA。", skills: ["13 个 Skill", "Subagent 并行编排", "规范 / 审查 / QA"] },
-];
-
 const careerHighlights: Record<string, { stage: string; contribution: string; skills: string[]; icon: string }> = {
   "2016": { stage: "前端工程", contribution: "围绕 Web、H5 与游戏后台，积累组件化与性能优化实践。", skills: ["Web / H5", "组件化", "性能优化"], icon: "code" },
   "2019": { stage: "前端架构", contribution: "沉淀通用组件与业务模板，承担多端技术规划和方案评审。", skills: ["多端架构", "工程化", "Code Review"], icon: "layers" },

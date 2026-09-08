@@ -104,7 +104,7 @@ export default function SelectedWork({ projects }: { projects: Project[] }) {
   };
 
   return <section className="section work-section showcase-section" id="work" aria-labelledby="work-heading">
-    <div className="section-label"><span>02</span> SELECTED WORK / 代表作品</div>
+    <div className="section-label"><span>01</span> SELECTED WORK / 代表作品</div>
     <div className="section-heading"><h2 id="work-heading">让 AI 参与研发，<br />让工程约束<span>真正落地。</span></h2><p>从自研开发工作流与企业编码治理，到 Agent 生产化、全栈业务系统和云原生交付。</p></div>
     <div className={`work-grid${showcases.some(entry => entry.members) ? " has-agent-system" : ""}`} ref={gridRef}>
       {showcases.map(({ project, members }, i) => <article className={`work-card${project.featured ? " work-featured workflow-featured" : ""}${members ? " agent-system-featured" : ""}`} key={project.index}
