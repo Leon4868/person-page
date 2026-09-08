@@ -68,6 +68,25 @@ test("ships local visual assets and an accessible technology list", async () => 
   ].map(file => access(new URL(`../public/${file}`, import.meta.url))));
 });
 
+test("renders a decorative pointer trail with bounded reusable icon nodes", async () => {
+  const html = await (await render()).text();
+  const trail = html.match(/<div[^>]*class="pointer-trail"[\s\S]*?<\/div>/)?.[0];
+  assert.ok(trail);
+  assert.match(trail, /aria-hidden="true"/);
+  assert.equal((trail.match(/class="pointer-trail-icon"/g) ?? []).length, 12);
+
+  const source = await readFile(new URL("../app/pointer-trail.ts", import.meta.url), "utf8");
+  const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } }).outputText;
+  const { trailSamples, TRAIL_SPACING, MAX_TRAIL_SAMPLES } = await import(`data:text/javascript;base64,${Buffer.from(js).toString("base64")}`);
+  assert.deepEqual(trailSamples({ x: 0, y: 0 }, { x: TRAIL_SPACING - 1, y: 0 }), []);
+  const samples = trailSamples({ x: 0, y: 0 }, { x: 400, y: 200 });
+  assert.equal(samples.length, MAX_TRAIL_SAMPLES);
+  assert.deepEqual(samples.at(-1), { x: 400, y: 200 });
+
+  const css = await readFile(new URL("../app/pointer-trail.css", import.meta.url), "utf8");
+  for (const copy of ["pointer: coarse", "prefers-reduced-motion", "@media print", "pointer-events: none"]) assert.ok(css.includes(copy), copy);
+});
+
 test("keeps complete hero copy accessible before motion starts", async () => {
   const html = await (await render()).text();
   assert.match(html, /<h1[^>]+aria-label="I BUILD DIGITAL EXPERIENCES\."/);

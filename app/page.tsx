@@ -8,6 +8,7 @@ import HeroCopy from "./HeroCopy";
 import SelectedWork from "./SelectedWork";
 import KnowledgeGraph from "./KnowledgeGraph";
 import CareerTimeline from "./CareerTimeline";
+import PointerTrail from "./PointerTrail";
 import { visibleProjects } from "./portfolio-content";
 
 export default function Home() {
@@ -144,6 +145,7 @@ export default function Home() {
 
   return (
     <main>
+      <PointerTrail />
       <div className="cursor-dot" aria-hidden="true" /><div className="cursor-ring" aria-hidden="true" />
       <section className="hero" id="home" ref={heroRef}>
         <canvas className="hero-canvas" ref={canvasRef} aria-hidden="true" />
